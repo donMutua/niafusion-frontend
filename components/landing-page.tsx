@@ -1,16 +1,30 @@
-"use client"
+"use client";
 
-import { useRef, useEffect } from "react"
-import Link from "next/link"
-import { motion, useScroll, useTransform } from "framer-motion"
-import { ArrowRight, Sparkles, MapPin, Phone, Mail, ExternalLink, MapPinned, PhoneCall } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent } from "@/components/ui/card"
-import { MailQuestion } from "lucide-react"
+import { useRef, useEffect } from "react";
+import Link from "next/link";
+import { motion, useScroll, useTransform } from "framer-motion";
+import {
+  ArrowRight,
+  Sparkles,
+  MapPin,
+  Phone,
+  Mail,
+  ExternalLink,
+  MapPinned,
+  PhoneCall,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { MailQuestion } from "lucide-react";
+import { AuthNavButtons } from "./auth-nav-buttons";
 
 const Logo = () => (
-  <svg viewBox="29 193 411 81" className="w-32 h-8" style={{ filter: "contrast(1.1)" }}>
+  <svg
+    viewBox="29 193 411 81"
+    className="w-32 h-8"
+    style={{ filter: "contrast(1.1)" }}
+  >
     <g transform="matrix(0.31999998,0,0,0.31999998,0,9.434666e-6)">
       <g transform="matrix(3.125,0,0,3.125,110.88121,639.65308)">
         <text
@@ -50,137 +64,146 @@ const Logo = () => (
       </g>
     </g>
   </svg>
-)
+);
 
 const OptiMindIcon = () => (
-  <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M24 4L35.2583 10.5V23.5L24 30L12.7417 23.5V10.5L24 4Z" stroke="#00FFFF" strokeWidth="2" />
+  <svg
+    width="48"
+    height="48"
+    viewBox="0 0 48 48"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M24 4L35.2583 10.5V23.5L24 30L12.7417 23.5V10.5L24 4Z"
+      stroke="#00FFFF"
+      strokeWidth="2"
+    />
     <path d="M24 30V44" stroke="#00FFFF" strokeWidth="2" />
     <path d="M35.2583 23.5L44 28" stroke="#00FFFF" strokeWidth="2" />
     <path d="M12.7417 23.5L4 28" stroke="#00FFFF" strokeWidth="2" />
   </svg>
-)
+);
 
 const SEOSageIcon = () => (
-  <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <svg
+    width="48"
+    height="48"
+    viewBox="0 0 48 48"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
     <path d="M24 4V44" stroke="#00FFFF" strokeWidth="2" />
     <path d="M4 24H44" stroke="#00FFFF" strokeWidth="2" />
     <circle cx="24" cy="24" r="8" stroke="#00FFFF" strokeWidth="2" />
-    <path d="M35.2583 12.7417L41.2583 6.74167" stroke="#00FFFF" strokeWidth="2" />
-    <path d="M6.74167 41.2583L12.7417 35.2583" stroke="#00FFFF" strokeWidth="2" />
+    <path
+      d="M35.2583 12.7417L41.2583 6.74167"
+      stroke="#00FFFF"
+      strokeWidth="2"
+    />
+    <path
+      d="M6.74167 41.2583L12.7417 35.2583"
+      stroke="#00FFFF"
+      strokeWidth="2"
+    />
   </svg>
-)
+);
 
 const SellMateIcon = () => (
-  <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M24 4L35.2583 10.5V23.5L24 30L12.7417 23.5V10.5L24 4Z" stroke="#00FFFF" strokeWidth="2" />
+  <svg
+    width="48"
+    height="48"
+    viewBox="0 0 48 48"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M24 4L35.2583 10.5V23.5L24 30L12.7417 23.5V10.5L24 4Z"
+      stroke="#00FFFF"
+      strokeWidth="2"
+    />
     <path d="M24 30V44" stroke="#00FFFF" strokeWidth="2" />
     <path d="M35.2583 23.5L44 28" stroke="#00FFFF" strokeWidth="2" />
     <path d="M12.7417 23.5L4 28" stroke="#00FFFF" strokeWidth="2" />
     <circle cx="24" cy="17" r="4" stroke="#00FFFF" strokeWidth="2" />
   </svg>
-)
+);
 
-const ScrollLink = ({ to, children }) => {
-  const handleClick = (e) => {
-    e.preventDefault()
-    const element = document.querySelector(to)
+const ScrollLink = ({ to, children }: any) => {
+  const handleClick = (e: any) => {
+    e.preventDefault();
+    const element = document.querySelector(to);
     if (element) {
-      element.scrollIntoView({ behavior: "smooth" })
+      element.scrollIntoView({ behavior: "smooth" });
     }
-  }
+  };
 
   return (
     <a href={to} onClick={handleClick} className="cursor-pointer">
       {children}
     </a>
-  )
-}
+  );
+};
 
 export default function LandingPage() {
-  const targetRef = useRef(null)
+  const targetRef = useRef(null);
   const { scrollYProgress } = useScroll({
     target: targetRef,
     offset: ["start start", "end start"],
-  })
+  });
 
-  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0])
-  const scale = useTransform(scrollYProgress, [0, 0.5], [1, 0.8])
+  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
+  const scale = useTransform(scrollYProgress, [0, 0.5], [1, 0.8]);
 
   useEffect(() => {
     const handleScroll = () => {
-      const sections = document.querySelectorAll("section")
-      const navLinks = document.querySelectorAll("nav a")
+      const sections = document.querySelectorAll("section");
+      const navLinks = document.querySelectorAll("nav a");
 
-      let currentSection = ""
+      let currentSection = "";
       sections.forEach((section) => {
-        const sectionTop = section.offsetTop
-        const sectionHeight = section.clientHeight
+        const sectionTop = section.offsetTop;
+        const sectionHeight = section.clientHeight;
         if (window.pageYOffset >= sectionTop - sectionHeight / 3) {
-          currentSection = section.getAttribute("id")
+          currentSection = section.getAttribute("id") || "";
         }
-      })
+      });
 
       navLinks.forEach((link) => {
-        link.classList.remove("text-purple-500")
+        link.classList.remove("text-purple-500");
         if (link.getAttribute("href") === `#${currentSection}`) {
-          link.classList.add("text-purple-500")
+          link.classList.add("text-purple-500");
         }
-      })
-    }
+      });
+    };
 
-    window.addEventListener("scroll", handleScroll)
+    window.addEventListener("scroll", handleScroll);
     return () => {
-      window.removeEventListener("scroll", handleScroll)
-    }
-  }, [])
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
 
   return (
     <div className="min-h-screen overflow-hidden bg-[#f5f5f5]">
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4 bg-white/80 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <ScrollLink to="#home">
-            <Logo />
-          </ScrollLink>
-
-          <div className="hidden md:flex items-center gap-1 bg-white/90 rounded-full px-2 py-1.5 border">
-            <ScrollLink to="#home">
-              <span className="px-4 py-1 text-sm rounded-full hover:bg-black/5 transition-colors">Home</span>
-            </ScrollLink>
-            <ScrollLink to="#features">
-              <span className="px-4 py-1 text-sm rounded-full hover:bg-black/5 transition-colors">Features</span>
-            </ScrollLink>
-            <ScrollLink to="#about">
-              <span className="px-4 py-1 text-sm rounded-full hover:bg-black/5 transition-colors">About</span>
-            </ScrollLink>
-            <ScrollLink to="#contact">
-              <span className="px-4 py-1 text-sm rounded-full hover:bg-black/5 transition-colors">Contact</span>
-            </ScrollLink>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              className="text-[#4F46E5] hover:bg-[#4F46E5]/5 px-4 py-2 h-9"
-              onClick={() => (window.location.href = "/auth/sign-in")}
-            >
-              Sign in
-            </Button>
-            <Button
-              className="bg-[#4F46E5] text-white hover:bg-[#4F46E5]/90 px-4 py-2 h-9"
-              onClick={() => (window.location.href = "/auth/sign-up")}
-            >
-              Sign up
-            </Button>
-          </div>
-        </div>
-      </nav>
+      <div className="flex items-center gap-3">
+        <AuthNavButtons />
+      </div>
 
       {/* Hero Section */}
-      <section id="home" ref={targetRef} className="relative pt-16 min-h-[50vh]">
-        <motion.div style={{ opacity, scale }} className="relative z-10 max-w-7xl mx-auto px-6">
-          <Badge variant="outline" className="mb-4 py-2 backdrop-blur-sm bg-white/30">
+      <section
+        id="home"
+        ref={targetRef}
+        className="relative pt-16 min-h-[50vh]"
+      >
+        <motion.div
+          style={{ opacity, scale }}
+          className="relative z-10 max-w-7xl mx-auto px-6"
+        >
+          <Badge
+            variant="outline"
+            className="mb-4 py-2 backdrop-blur-sm bg-white/30"
+          >
             <Sparkles className="w-4 h-4 mr-2 text-[#ff00ff]" />
             Next-Gen AI Suite
           </Badge>
@@ -198,7 +221,8 @@ export default function LandingPage() {
           </div>
 
           <p className="mt-6 text-xl text-gray-600 max-w-2xl">
-            Experience the fusion of intelligence and automation with our trio of specialized AI agents.
+            Experience the fusion of intelligence and automation with our trio
+            of specialized AI agents.
           </p>
 
           <div className="mt-8 flex flex-col md:flex-row gap-6 items-start">
@@ -213,7 +237,8 @@ export default function LandingPage() {
 
             <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-6 max-w-xs relative group">
               <p className="text-lg leading-snug">
-                The Work AI platform connected to all your data. Find, create and automate anything.
+                The Work AI platform connected to all your data. Find, create
+                and automate anything.
               </p>
               <Button variant="ghost" size="icon" className="mt-4 rounded-full">
                 <ArrowRight className="w-5 h-5" />
@@ -228,20 +253,32 @@ export default function LandingPage() {
       {/* Features Section */}
       <section id="features" className="py-4 mb-16">
         <div className="max-w-7xl mx-auto px-6">
-          <h2 className="text-[clamp(2rem,4vw,3rem)] font-medium leading-none tracking-tight mb-4">Our AI Agents</h2>
+          <h2 className="text-[clamp(2rem,4vw,3rem)] font-medium leading-none tracking-tight mb-4">
+            Our AI Agents
+          </h2>
           <div className="grid md:grid-cols-3 gap-[5px]">
             <Card className="bg-[#1C1E21] border-0">
               <CardContent className="p-6">
                 <div className="mb-4">
                   <OptiMindIcon />
                 </div>
-                <h3 className="text-xl font-semibold mb-2 text-white">OptiMind</h3>
-                <p className="text-gray-400 mb-4">AI-powered insights for exponential website growth.</p>
+                <h3 className="text-xl font-semibold mb-2 text-white">
+                  OptiMind
+                </h3>
+                <p className="text-gray-400 mb-4">
+                  AI-powered insights for exponential website growth.
+                </p>
                 <div className="flex items-center justify-between">
-                  <Badge variant="secondary" className="bg-[#00FFFF]/10 text-[#00FFFF]">
+                  <Badge
+                    variant="secondary"
+                    className="bg-[#00FFFF]/10 text-[#00FFFF]"
+                  >
                     Live
                   </Badge>
-                  <Button variant="ghost" className="text-[#00FFFF] hover:text-white hover:bg-[#00FFFF]/20">
+                  <Button
+                    variant="ghost"
+                    className="text-[#00FFFF] hover:text-white hover:bg-[#00FFFF]/20"
+                  >
                     Analyze Now <ArrowRight className="ml-2 w-4 h-4" />
                   </Button>
                 </div>
@@ -253,13 +290,23 @@ export default function LandingPage() {
                 <div className="mb-4">
                   <SEOSageIcon />
                 </div>
-                <h3 className="text-xl font-semibold mb-2 text-white">SEO Sage</h3>
-                <p className="text-gray-400 mb-4">Predictive SEO for dominating search rankings.</p>
+                <h3 className="text-xl font-semibold mb-2 text-white">
+                  SEO Sage
+                </h3>
+                <p className="text-gray-400 mb-4">
+                  Predictive SEO for dominating search rankings.
+                </p>
                 <div className="flex items-center justify-between">
-                  <Badge variant="secondary" className="bg-gray-800 text-gray-400">
+                  <Badge
+                    variant="secondary"
+                    className="bg-gray-800 text-gray-400"
+                  >
                     Coming Soon
                   </Badge>
-                  <Button variant="ghost" className="text-[#00FFFF] hover:text-white hover:bg-[#00FFFF]/20">
+                  <Button
+                    variant="ghost"
+                    className="text-[#00FFFF] hover:text-white hover:bg-[#00FFFF]/20"
+                  >
                     Join Waitlist <ArrowRight className="ml-2 w-4 h-4" />
                   </Button>
                 </div>
@@ -271,13 +318,23 @@ export default function LandingPage() {
                 <div className="mb-4">
                   <SellMateIcon />
                 </div>
-                <h3 className="text-xl font-semibold mb-2 text-white">SellMate</h3>
-                <p className="text-gray-400 mb-4">AI-driven sales automation for 24/7 revenue growth.</p>
+                <h3 className="text-xl font-semibold mb-2 text-white">
+                  SellMate
+                </h3>
+                <p className="text-gray-400 mb-4">
+                  AI-driven sales automation for 24/7 revenue growth.
+                </p>
                 <div className="flex items-center justify-between">
-                  <Badge variant="secondary" className="bg-gray-800 text-gray-400">
+                  <Badge
+                    variant="secondary"
+                    className="bg-gray-800 text-gray-400"
+                  >
                     Coming Soon
                   </Badge>
-                  <Button variant="ghost" className="text-[#00FFFF] hover:text-white hover:bg-[#00FFFF]/20">
+                  <Button
+                    variant="ghost"
+                    className="text-[#00FFFF] hover:text-white hover:bg-[#00FFFF]/20"
+                  >
                     Get Notified <ArrowRight className="ml-2 w-4 h-4" />
                   </Button>
                 </div>
@@ -324,10 +381,12 @@ export default function LandingPage() {
                       />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-medium text-white">Flexible & Understanding</h3>
+                  <h3 className="text-lg font-medium text-white">
+                    Flexible & Understanding
+                  </h3>
                   <p className="text-sm text-gray-400">
-                    We put our partners first, collaborating closely to find and deliver solutions that work for their
-                    unique needs.
+                    We put our partners first, collaborating closely to find and
+                    deliver solutions that work for their unique needs.
                   </p>
                 </div>
 
@@ -340,13 +399,20 @@ export default function LandingPage() {
                       stroke="currentColor"
                       strokeWidth="2"
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M13 10V3L4 14h7v7l9-11h-7z"
+                      />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-medium text-white">Growth & Development</h3>
+                  <h3 className="text-lg font-medium text-white">
+                    Growth & Development
+                  </h3>
                   <p className="text-sm text-gray-400">
-                    There's a wealth of growth potential in developing your platform in this long term. We're here to
-                    help you reach where you want to be.
+                    There's a wealth of growth potential in developing your
+                    platform in this long term. We're here to help you reach
+                    where you want to be.
                   </p>
                 </div>
 
@@ -359,7 +425,11 @@ export default function LandingPage() {
                       stroke="currentColor"
                       strokeWidth="2"
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -367,9 +437,12 @@ export default function LandingPage() {
                       />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-medium text-white">Open & Transparent</h3>
+                  <h3 className="text-lg font-medium text-white">
+                    Open & Transparent
+                  </h3>
                   <p className="text-sm text-gray-400">
-                    Everyone stays informed on all the latest projects, and everyone's input is valued and considered.
+                    Everyone stays informed on all the latest projects, and
+                    everyone's input is valued and considered.
                   </p>
                 </div>
 
@@ -389,10 +462,12 @@ export default function LandingPage() {
                       />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-medium text-white">Helpful & Supportive</h3>
+                  <h3 className="text-lg font-medium text-white">
+                    Helpful & Supportive
+                  </h3>
                   <p className="text-sm text-gray-400">
-                    As part of Niafusion team, you'll never have to go it alone. We support each other every step of the
-                    way.
+                    As part of Niafusion team, you'll never have to go it alone.
+                    We support each other every step of the way.
                   </p>
                 </div>
               </div>
@@ -409,7 +484,12 @@ export default function LandingPage() {
                 viewBox="0 0 100 100"
                 fill="none"
               >
-                <path d="M0,50 Q25,50 50,75 T100,50" stroke="currentColor" strokeWidth="2" fill="none" />
+                <path
+                  d="M0,50 Q25,50 50,75 T100,50"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  fill="none"
+                />
               </svg>
 
               <div className="relative">
@@ -428,9 +508,12 @@ export default function LandingPage() {
       <section id="contact" className="py-24">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
-            <h2 className="text-[clamp(2.5rem,5vw,4rem)] font-medium tracking-tight mb-4">Get in touch</h2>
+            <h2 className="text-[clamp(2.5rem,5vw,4rem)] font-medium tracking-tight mb-4">
+              Get in touch
+            </h2>
             <p className="text-xl text-gray-600">
-              Ready to help your company scale faster? Let's chat about how we can help.
+              Ready to help your company scale faster? Let's chat about how we
+              can help.
             </p>
           </div>
 
@@ -444,13 +527,19 @@ export default function LandingPage() {
                   </div>
                 </div>
                 <h3 className="text-xl font-semibold mb-2">Email Sales</h3>
-                <p className="text-gray-600 mb-6">Get in touch with our sales team.</p>
+                <p className="text-gray-600 mb-6">
+                  Get in touch with our sales team.
+                </p>
                 <Button
                   variant="ghost"
                   className="w-full justify-start text-gray-600 hover:text-gray-900 group-hover:bg-gray-100/50"
-                  onClick={() => (window.location.href = "mailto:sales@niafusion.com")}
+                  onClick={() =>
+                    (window.location.href = "mailto:sales@niafusion.com")
+                  }
                 >
-                  <span className="flex-grow text-left">sales@niafusion.com</span>
+                  <span className="flex-grow text-left">
+                    sales@niafusion.com
+                  </span>
                   <ExternalLink className="ml-2 size-4 transition-transform group-hover:translate-x-1" />
                 </Button>
               </CardContent>
@@ -470,9 +559,13 @@ export default function LandingPage() {
                 <Button
                   variant="ghost"
                   className="w-full justify-start text-gray-600 hover:text-gray-900 group-hover:bg-gray-100/50"
-                  onClick={() => (window.location.href = "mailto:support@niafusion.com")}
+                  onClick={() =>
+                    (window.location.href = "mailto:support@niafusion.com")
+                  }
                 >
-                  <span className="flex-grow text-left">support@niafusion.com</span>
+                  <span className="flex-grow text-left">
+                    support@niafusion.com
+                  </span>
                   <ExternalLink className="ml-2 size-4 transition-transform group-hover:translate-x-1" />
                 </Button>
               </CardContent>
@@ -492,11 +585,18 @@ export default function LandingPage() {
                 <Button
                   variant="ghost"
                   className="w-full justify-start text-gray-600 hover:text-gray-900 group-hover:bg-gray-100/50"
-                  onClick={() => window.open("https://maps.google.com/?q=ABC+Place+Westlands+Nairobi", "_blank")}
+                  onClick={() =>
+                    window.open(
+                      "https://maps.google.com/?q=ABC+Place+Westlands+Nairobi",
+                      "_blank"
+                    )
+                  }
                 >
                   <div className="flex-grow text-left">
                     <span className="block">ABC Place</span>
-                    <span className="block text-sm text-gray-500">Westlands, Nairobi</span>
+                    <span className="block text-sm text-gray-500">
+                      Westlands, Nairobi
+                    </span>
                   </div>
                   <MapPinned className="ml-2 size-4 transition-transform group-hover:translate-x-1" />
                 </Button>
@@ -521,7 +621,9 @@ export default function LandingPage() {
                 >
                   <div className="flex-grow text-left">
                     <span className="block">+254 734 977 088</span>
-                    <span className="block text-sm text-gray-500">Click to call</span>
+                    <span className="block text-sm text-gray-500">
+                      Click to call
+                    </span>
                   </div>
                   <PhoneCall className="ml-2 size-4 transition-transform group-hover:translate-x-1" />
                 </Button>
@@ -537,18 +639,25 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center">
           <div className="mb-6 md:mb-0">
             <Logo />
-            <p className="mt-2 text-sm text-gray-500">AI-powered growth for modern businesses</p>
+            <p className="mt-2 text-sm text-gray-500">
+              AI-powered growth for modern businesses
+            </p>
           </div>
           <nav className="flex flex-wrap justify-center gap-4 md:gap-6">
-            {["Privacy Policy", "Terms of Service", "Contact Us", "FAQ"].map((item) => (
-              <Link key={item} href="#" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">
-                {item}
-              </Link>
-            ))}
+            {["Privacy Policy", "Terms of Service", "Contact Us", "FAQ"].map(
+              (item) => (
+                <Link
+                  key={item}
+                  href="#"
+                  className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
+                >
+                  {item}
+                </Link>
+              )
+            )}
           </nav>
         </div>
       </footer>
     </div>
-  )
+  );
 }
-
