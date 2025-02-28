@@ -2,14 +2,9 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
 export async function middleware(request: NextRequest) {
-  // Create a response object
-  let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
-  });
-
   // Create a Supabase client
+  let response = NextResponse.next();
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -19,16 +14,7 @@ export async function middleware(request: NextRequest) {
           return request.cookies.get(name)?.value;
         },
         set(name: string, value: string, options: any) {
-          request.cookies.set({
-            name,
-            value,
-            ...options,
-          });
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          });
+          // This is used to set cookies in the browser
           response.cookies.set({
             name,
             value,
@@ -36,16 +22,7 @@ export async function middleware(request: NextRequest) {
           });
         },
         remove(name: string, options: any) {
-          request.cookies.set({
-            name,
-            value: "",
-            ...options,
-          });
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          });
+          // This is used to remove cookies from the browser
           response.cookies.set({
             name,
             value: "",
@@ -56,14 +33,27 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  // Refresh the session if it exists
-  const { data } = await supabase.auth.getSession();
+  // Get the user's session
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
-  // Protect dashboard and other authenticated routes
-  if (request.nextUrl.pathname.startsWith("/dashboard")) {
-    if (!data.session) {
+  // Get the URL pathname
+  const path = request.nextUrl.pathname;
+
+  // Protect dashboard routes
+  if (path.startsWith("/dashboard")) {
+    if (!session) {
+      // Redirect to sign-in if there's no session
       return NextResponse.redirect(new URL("/auth/sign-in", request.url));
     }
+    // User is authenticated, allow access to dashboard
+    return response;
+  }
+
+  // Handle auth routes - redirect to dashboard if already signed in
+  if (path.startsWith("/auth") && session) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
   return response;
