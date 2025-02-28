@@ -1,7 +1,8 @@
 import { DashboardShell } from "@/components/dashboard/shell"
 import { AnalysisView } from "@/components/dashboard/analysis-view"
 
-export default function AnalysisViewPage({ params }: { params: { id: string } }) {
+export default async function AnalysisViewPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   return (
     <DashboardShell>
       <div className="flex flex-col gap-8 p-8">
