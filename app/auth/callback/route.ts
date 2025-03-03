@@ -6,29 +6,35 @@ export async function GET(request: NextRequest) {
     const requestUrl = new URL(request.url);
     const code = requestUrl.searchParams.get("code");
 
+    // Determine the base URL dynamically
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+
     if (code) {
       const supabase = await createClient();
       const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
       // Check if the user is confirmed (email verified)
       if (data?.session) {
-        // User is authenticated, redirect to dashboard
-        return NextResponse.redirect(new URL("/dashboard", request.url));
+        // Always redirect to sign-in page after verification
+        return NextResponse.redirect(new URL("/auth/sign-in", baseUrl));
       } else {
         // No session yet (email not verified or other issue)
         return NextResponse.redirect(
           new URL(
             "/auth/sign-in?message=Please check your email to verify your account",
-            request.url
+            baseUrl
           )
         );
       }
     }
 
     // No code present, redirect to sign-in
-    return NextResponse.redirect(new URL("/auth/sign-in", request.url));
+    return NextResponse.redirect(new URL("/auth/sign-in", baseUrl));
   } catch (err) {
     console.error("Callback error:", err);
-    return NextResponse.redirect(new URL("/auth/error", request.url));
+
+    // Determine the base URL dynamically
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+    return NextResponse.redirect(new URL("/auth/error", baseUrl));
   }
 }
