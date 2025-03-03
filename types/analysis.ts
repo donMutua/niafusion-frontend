@@ -36,3 +36,9 @@ export interface AnalysisResult {
   completed_at: string
 }
 
+export interface AnalysisResponse {
+  task_id: string;
+  status: string;
+  message: string;
+}
+
