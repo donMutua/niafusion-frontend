@@ -6,12 +6,18 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+// Determine the correct redirect URL based on the environment
+const getRedirectUrl = () => {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+  return `${baseUrl}/auth/sign-in`;
+};
+
 export async function signUp(formData: FormData) {
   try {
-    const email = formData.get("1_email") as string;
-    const password = formData.get("1_password") as string;
-    const firstName = formData.get("1_firstName") as string;
-    const lastName = formData.get("1_lastName") as string;
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+    const firstName = formData.get("firstName") as string;
+    const lastName = formData.get("lastName") as string;
 
     // Validate inputs
     if (!email || !password) {
@@ -28,7 +34,7 @@ export async function signUp(formData: FormData) {
           first_name: firstName,
           last_name: lastName,
         },
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_BASE_URL}/auth/callback`,
+        emailRedirectTo: getRedirectUrl(),
       },
     });
 

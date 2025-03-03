@@ -5,6 +5,8 @@ export async function middleware(request: NextRequest) {
   // Create a Supabase client
   let response = NextResponse.next();
 
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -45,7 +47,7 @@ export async function middleware(request: NextRequest) {
   if (path.startsWith("/dashboard")) {
     if (!session) {
       // Redirect to sign-in if there's no session
-      return NextResponse.redirect(new URL("/auth/sign-in", request.url));
+      return NextResponse.redirect(new URL("/auth/sign-in", baseUrl));
     }
     // User is authenticated, allow access to dashboard
     return response;
@@ -53,7 +55,7 @@ export async function middleware(request: NextRequest) {
 
   // Handle auth routes - redirect to dashboard if already signed in
   if (path.startsWith("/auth") && session) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    return NextResponse.redirect(new URL("/dashboard", baseUrl));
   }
 
   return response;
