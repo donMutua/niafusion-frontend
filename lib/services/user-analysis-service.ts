@@ -1,9 +1,10 @@
 import { createClient } from "@/lib/supabase/client";
 import { AnalysisResult } from "@/types/analysis";
+import { calculateAnalysisScores } from "./scoring";
 
 export const UserAnalysisService = {
   /**
-   * Save analysis result to Supabase
+   * Save analysis result to Supabase with calculated scores
    */
   saveAnalysis: async (
     analysis: AnalysisResult,
@@ -12,11 +13,8 @@ export const UserAnalysisService = {
     try {
       const supabase = createClient();
 
-      //TODO: Calculate scores (for demonstration - you'd implement your actual scoring logic)
-      const seoScore = Math.floor(Math.random() * 31) + 70; // Random score between 70-100
-      const performanceScore = Math.floor(Math.random() * 31) + 70;
-      const accessibilityScore = Math.floor(Math.random() * 31) + 70;
-      const bestPracticesScore = Math.floor(Math.random() * 31) + 70;
+      // Calculate scores based on analysis data
+      const scores = calculateAnalysisScores(analysis);
 
       // Format the data to match Supabase table structure
       const analysisData = {
@@ -31,11 +29,11 @@ export const UserAnalysisService = {
         created_at: analysis.created_at,
         completed_at: analysis.completed_at,
 
-        // Add scores
-        seo_score: seoScore,
-        performance_score: performanceScore,
-        accessibility_score: accessibilityScore,
-        best_practices_score: bestPracticesScore,
+        // Add calculated scores
+        seo_score: scores.seo,
+        performance_score: scores.performance,
+        accessibility_score: scores.accessibility,
+        best_practices_score: scores.bestPractices,
       };
 
       // Use upsert to handle both new records and updates
@@ -43,7 +41,7 @@ export const UserAnalysisService = {
         .from("user_analyses")
         .upsert(analysisData, {
           onConflict: "task_id",
-          ignoreDuplicates: false, // Update if a record with the same task_id exists
+          ignoreDuplicates: false,
         });
 
       if (error) throw error;
