@@ -20,12 +20,17 @@ import { toast } from "@/components/ui/use-toast";
 import { config } from "@/lib/config";
 import { useAnalysisStore } from "@/lib/stores/analysis-store";
 import { WebsiteAnalysisService } from "@/lib/services/website-analysis-service";
+import { UserAnalysisService } from "@/lib/services/user-analysis-service";
 import { isValidUrl, normalizeUrl } from "@/lib/utils/url-helpers";
 import { ImpactBadge, EffortBadge } from "@/components/analysis/status-badges";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 export function WebsiteAnalyzer() {
   // Local state
   const [activeTab, setActiveTab] = useState("overview");
+
+  // Get current user
+  const { userId } = useCurrentUser();
 
   // Global state from Zustand store
   const {
@@ -44,6 +49,7 @@ export function WebsiteAnalyzer() {
     error: analysisError,
     setError,
     addRecentAnalysis,
+    addUserAnalysis,
     reset,
   } = useAnalysisStore();
 
@@ -58,6 +64,22 @@ export function WebsiteAnalyzer() {
           setProgress(100);
           setIsAnalyzing(false);
           addRecentAnalysis(result);
+
+          // Save to database if user is authenticated
+          if (userId) {
+            try {
+              // Save to database
+              await UserAnalysisService.saveAnalysis(result, userId);
+
+              // Add to Zustand store for immediate UI update
+              addUserAnalysis(result);
+
+              console.log("Analysis saved to database and store");
+            } catch (saveError) {
+              console.error("Error saving analysis to database:", saveError);
+              // Don't affect the user experience if saving fails
+            }
+          }
 
           toast({
             title: "Analysis completed",
@@ -85,7 +107,15 @@ export function WebsiteAnalyzer() {
         return false;
       }
     },
-    [setResult, setProgress, setIsAnalyzing, setError, addRecentAnalysis]
+    [
+      setResult,
+      setProgress,
+      setIsAnalyzing,
+      setError,
+      addRecentAnalysis,
+      addUserAnalysis,
+      userId,
+    ]
   );
 
   // Function to start analysis

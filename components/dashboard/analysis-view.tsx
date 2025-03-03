@@ -1,152 +1,140 @@
-"use client"
-
-import { useState, useEffect } from "react"
-import { format } from "date-fns"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
-import type { AnalysisResult } from "@/types/analysis"
-
-// Mock function to fetch a single analysis result
-const fetchAnalysis = async (taskId: string): Promise<AnalysisResult> => {
-  // Simulate API call delay
-  await new Promise((resolve) => setTimeout(resolve, 1000))
-
-  return {
-    task_id: taskId,
-    url: "https://example.com",
-    status: "completed",
-    recommendations: [
-      {
-        category: "seo",
-        title: "Improve Meta Descriptions",
-        description:
-          "Your meta descriptions are too short or missing. Add descriptive and keyword-rich meta descriptions to improve click-through rates from search results.",
-        impact: "high",
-        effort: "medium",
-        steps: [
-          "Review all pages without meta descriptions",
-          "Write unique, compelling meta descriptions for each page",
-          "Include relevant keywords in the descriptions",
-          "Keep descriptions between 120-160 characters",
-        ],
-        potential_benefit: "Increased click-through rates from search engine results pages",
-        priority: 1,
-      },
-      {
-        category: "performance",
-        title: "Optimize Image Sizes",
-        description:
-          "Large image files are slowing down your page load times. Compress and resize images to improve overall site performance.",
-        impact: "high",
-        effort: "low",
-        steps: [
-          "Identify oversized images",
-          "Use image compression tools to reduce file sizes",
-          "Implement responsive images for different screen sizes",
-          "Consider lazy loading for images below the fold",
-        ],
-        potential_benefit: "Faster page load times and improved user experience",
-        priority: 2,
-      },
-      {
-        category: "accessibility",
-        title: "Add Alt Text to Images",
-        description: "Many images on your site lack alt text, making them inaccessible to users with screen readers.",
-        impact: "medium",
-        effort: "low",
-        steps: [
-          "Review all images on the site",
-          "Add descriptive alt text to each image",
-          "Ensure decorative images have empty alt attributes",
-          "Use meaningful text that describes the image content",
-        ],
-        potential_benefit: "Improved accessibility and potential SEO benefits",
-        priority: 3,
-      },
-    ],
-    metadata: {
-      title: "Example Website - Home",
-      description: "This is an example website for demonstration purposes",
-      page_size: 1024000,
-      load_time: 2.5,
-      image_count: 15,
-      external_links: 8,
-      meta_tags: {
-        "og:title": "Example Website",
-        "og:description": "This is an example website for demonstration purposes",
-        "twitter:card": "summary",
-      },
-      headers: {
-        "content-type": "text/html; charset=UTF-8",
-        "cache-control": "max-age=3600",
-      },
-    },
-    summary:
-      "The website has several areas for improvement, particularly in SEO, performance, and accessibility. Addressing these issues could significantly enhance user experience and search engine rankings.",
-    error: null,
-    created_at: "2025-02-24T10:30:00Z",
-    completed_at: "2025-02-24T10:31:30Z",
-    analytics: {
-      seo_score: 68,
-      performance_score: 75,
-      accessibility_score: 82,
-      best_practices_score: 90,
-    },
-  }
-}
-
-const ScoreBadge = ({ score }: { score: number }) => {
-  let color = "bg-red-500/20 text-red-400"
-  if (score >= 90) {
-    color = "bg-green-500/20 text-green-400"
-  } else if (score >= 70) {
-    color = "bg-yellow-500/20 text-yellow-400"
-  } else if (score >= 50) {
-    color = "bg-orange-500/20 text-orange-400"
-  }
-  return <Badge className={color}>{score}</Badge>
-}
+"use client";
+import { useState, useEffect } from "react";
+import { format } from "date-fns";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Loader2, AlertTriangle } from "lucide-react";
+import type { AnalysisResult } from "@/types/analysis";
+import { useAnalysisStore } from "@/lib/stores/analysis-store";
+import { useCurrentUser } from "@/hooks/use-current-user";
+import { WebsiteAnalysisService } from "@/lib/services/website-analysis-service";
+import { UserAnalysisService } from "@/lib/services/user-analysis-service";
+import { ImpactBadge, EffortBadge } from "@/components/analysis/status-badges";
 
 export function AnalysisView({ taskId }: { taskId: string }) {
-  const [analysis, setAnalysis] = useState<AnalysisResult | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Get current user
+  const { userId } = useCurrentUser();
+
+  // Access Zustand store
+  const { userAnalyses, fetchUserAnalyses, addUserAnalysis } =
+    useAnalysisStore();
+
+  // Find the analysis in the store
+  const analysis = userAnalyses.find((a) => a.task_id === taskId);
 
   useEffect(() => {
     const loadAnalysis = async () => {
-      try {
-        const data = await fetchAnalysis(taskId)
-        setAnalysis(data)
-      } catch (error) {
-        console.error("Error fetching analysis:", error)
-      } finally {
-        setLoading(false)
+      // If analysis is already in store, we're done
+      if (analysis) {
+        setLoading(false);
+        return;
       }
-    }
 
-    loadAnalysis()
-  }, [taskId])
+      try {
+        setLoading(true);
+        setError(null);
 
+        // Try to fetch from Supabase first if user is logged in
+        if (userId) {
+          // First try to refresh the store
+          await fetchUserAnalyses(userId);
+
+          // Check if now in store after refresh
+          const storeAnalysis = userAnalyses.find((a) => a.task_id === taskId);
+          if (storeAnalysis) {
+            setLoading(false);
+            return;
+          }
+
+          // If not in store, try to get directly from Supabase
+          const supabaseAnalysis = await UserAnalysisService.getAnalysisById(
+            taskId
+          );
+          if (supabaseAnalysis) {
+            // Add to store
+            addUserAnalysis(supabaseAnalysis);
+            setLoading(false);
+            return;
+          }
+        }
+
+        // If we get here, try the API directly
+        const apiAnalysis = await WebsiteAnalysisService.getAnalysisResult(
+          taskId
+        );
+
+        // Save to Supabase and add to store
+        if (apiAnalysis && userId) {
+          try {
+            await UserAnalysisService.saveAnalysis(apiAnalysis, userId);
+            addUserAnalysis(apiAnalysis);
+          } catch (error) {
+            console.error("Error saving analysis:", error);
+            // Still show the analysis even if saving fails
+          }
+        }
+
+        // If API fails, we'll reach here and error will be null
+        // If no data is found, show error
+        if (!analysis && !apiAnalysis) {
+          setError("Analysis not found. It may have been deleted or expired.");
+        }
+      } catch (error) {
+        console.error("Error loading analysis:", error);
+        setError("Failed to load analysis. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadAnalysis();
+  }, [
+    taskId,
+    userId,
+    analysis,
+    userAnalyses,
+    fetchUserAnalyses,
+    addUserAnalysis,
+  ]);
+
+  // Show loading state
   if (loading) {
     return (
       <Card className="border-gray-800 bg-gray-900">
         <CardContent className="p-6">
-          <div className="flex items-center justify-center text-gray-400">Loading analysis...</div>
+          <div className="flex items-center justify-center text-gray-400">
+            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+            Loading analysis...
+          </div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
-  if (!analysis) {
+  // Show error state
+  if (error || !analysis) {
     return (
       <Card className="border-gray-800 bg-gray-900">
         <CardContent className="p-6">
-          <div className="text-center text-gray-400">Analysis not found or an error occurred.</div>
+          <Alert
+            variant="destructive"
+            className="bg-red-900/20 border-red-800 text-red-300"
+          >
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error || "Analysis not found"}</AlertDescription>
+          </Alert>
         </CardContent>
       </Card>
-    )
+    );
   }
 
+  // Show analysis content
   return (
     <div className="space-y-6">
       <Card className="border-gray-800 bg-gray-900">
@@ -162,7 +150,9 @@ export function AnalysisView({ taskId }: { taskId: string }) {
             <div>
               <p className="text-sm text-gray-400">Status</p>
               <Badge
-                variant={analysis.status === "completed" ? "success" : "secondary"}
+                variant={
+                  analysis.status === "completed" ? "success" : "secondary"
+                }
                 className="bg-green-500/20 text-green-400"
               >
                 {analysis.status}
@@ -171,15 +161,20 @@ export function AnalysisView({ taskId }: { taskId: string }) {
             <div>
               <p className="text-sm text-gray-400">Analyzed At</p>
               <p className="font-medium text-white">
-                {format(new Date(analysis.completed_at), "MMM d, yyyy HH:mm:ss")}
+                {format(
+                  new Date(analysis.completed_at),
+                  "MMM d, yyyy HH:mm:ss"
+                )}
               </p>
             </div>
             <div>
               <p className="text-sm text-gray-400">Duration</p>
               <p className="font-medium text-white">
-                {((new Date(analysis.completed_at).getTime() - new Date(analysis.created_at).getTime()) / 1000).toFixed(
-                  2,
-                )}
+                {(
+                  (new Date(analysis.completed_at).getTime() -
+                    new Date(analysis.created_at).getTime()) /
+                  1000
+                ).toFixed(2)}
                 s
               </p>
             </div>
@@ -187,29 +182,74 @@ export function AnalysisView({ taskId }: { taskId: string }) {
         </CardContent>
       </Card>
 
+      {/* Performance Scores */}
       <Card className="border-gray-800 bg-gray-900">
         <CardHeader>
           <CardTitle className="text-white">Performance Scores</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {Object.entries(analysis.analytics).map(([key, value]) => (
-              <div key={key}>
-                <p className="text-sm text-gray-400 capitalize">{key.replace("_", " ")}</p>
-                <div className="flex items-center gap-2">
-                  <Progress
-                    value={value}
-                    className="h-2 w-full bg-gray-800"
-                    indicatorClassName={`${value >= 90 ? "bg-green-600" : value >= 70 ? "bg-yellow-600" : value >= 50 ? "bg-orange-600" : "bg-red-600"}`}
-                  />
-                  <ScoreBadge score={value} />
+            {analysis.analytics && (
+              <>
+                <div>
+                  <p className="text-sm text-gray-400">SEO Score</p>
+                  <div className="flex items-center gap-2">
+                    <Progress
+                      value={analysis.analytics.seo_score}
+                      className="h-2 w-full bg-gray-800"
+                      indicatorClassName="bg-purple-600"
+                    />
+                    <Badge className="bg-purple-500/20 text-purple-400">
+                      {analysis.analytics.seo_score}
+                    </Badge>
+                  </div>
                 </div>
-              </div>
-            ))}
+                <div>
+                  <p className="text-sm text-gray-400">Performance</p>
+                  <div className="flex items-center gap-2">
+                    <Progress
+                      value={analysis.analytics.performance_score}
+                      className="h-2 w-full bg-gray-800"
+                      indicatorClassName="bg-blue-600"
+                    />
+                    <Badge className="bg-blue-500/20 text-blue-400">
+                      {analysis.analytics.performance_score}
+                    </Badge>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-400">Accessibility</p>
+                  <div className="flex items-center gap-2">
+                    <Progress
+                      value={analysis.analytics.accessibility_score}
+                      className="h-2 w-full bg-gray-800"
+                      indicatorClassName="bg-green-600"
+                    />
+                    <Badge className="bg-green-500/20 text-green-400">
+                      {analysis.analytics.accessibility_score}
+                    </Badge>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-400">Best Practices</p>
+                  <div className="flex items-center gap-2">
+                    <Progress
+                      value={analysis.analytics.best_practices_score}
+                      className="h-2 w-full bg-gray-800"
+                      indicatorClassName="bg-yellow-600"
+                    />
+                    <Badge className="bg-yellow-500/20 text-yellow-400">
+                      {analysis.analytics.best_practices_score}
+                    </Badge>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </CardContent>
       </Card>
 
+      {/* Recommendations */}
       <Card className="border-gray-800 bg-gray-900">
         <CardHeader>
           <CardTitle className="text-white">Recommendations</CardTitle>
@@ -220,24 +260,31 @@ export function AnalysisView({ taskId }: { taskId: string }) {
               <Card key={index} className="border-gray-700 bg-gray-800">
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between mb-2">
-                    <h3 className="text-lg font-semibold text-white">{rec.title}</h3>
-                    <Badge
-                      className={`${rec.impact === "high" ? "bg-red-500/20 text-red-400" : rec.impact === "medium" ? "bg-yellow-500/20 text-yellow-400" : "bg-green-500/20 text-green-400"}`}
-                    >
-                      {rec.impact} impact
-                    </Badge>
+                    <h3 className="text-lg font-semibold text-white">
+                      {rec.title}
+                    </h3>
+                    <div className="flex gap-2">
+                      <ImpactBadge impact={rec.impact} />
+                      <EffortBadge effort={rec.effort} />
+                    </div>
                   </div>
-                  <p className="text-gray-300 mb-3">{rec.description}</p>
-                  <div className="space-y-2">
-                    <h4 className="font-medium text-white">Steps to Implement:</h4>
-                    <ul className="list-disc pl-5 space-y-1 text-gray-300">
+                  <p className="text-gray-300">{rec.description}</p>
+                  <div className="mt-4">
+                    <h4 className="mb-3 font-medium text-white">
+                      Implementation Steps:
+                    </h4>
+                    <ul className="list-inside list-disc space-y-2">
                       {rec.steps.map((step, stepIndex) => (
-                        <li key={stepIndex}>{step}</li>
+                        <li key={stepIndex} className="text-gray-300">
+                          {step}
+                        </li>
                       ))}
                     </ul>
                   </div>
-                  <div className="mt-3">
-                    <h4 className="font-medium text-white">Potential Benefit:</h4>
+                  <div className="mt-4 rounded-lg bg-purple-500/10 p-4">
+                    <h4 className="mb-2 font-medium text-purple-400">
+                      Potential Benefit
+                    </h4>
                     <p className="text-gray-300">{rec.potential_benefit}</p>
                   </div>
                 </CardContent>
@@ -247,6 +294,7 @@ export function AnalysisView({ taskId }: { taskId: string }) {
         </CardContent>
       </Card>
 
+      {/* Metadata */}
       <Card className="border-gray-800 bg-gray-900">
         <CardHeader>
           <CardTitle className="text-white">Metadata</CardTitle>
@@ -255,41 +303,59 @@ export function AnalysisView({ taskId }: { taskId: string }) {
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <p className="text-sm text-gray-400">Title</p>
-              <p className="font-medium text-white">{analysis.metadata.title}</p>
+              <p className="font-medium text-white">
+                {analysis.metadata.title || "Not available"}
+              </p>
             </div>
             <div>
               <p className="text-sm text-gray-400">Description</p>
-              <p className="font-medium text-white">{analysis.metadata.description}</p>
+              <p className="font-medium text-white">
+                {analysis.metadata.description || "Not available"}
+              </p>
             </div>
             <div>
               <p className="text-sm text-gray-400">Page Size</p>
-              <p className="font-medium text-white">{(analysis.metadata.page_size / 1024).toFixed(2)} KB</p>
+              <p className="font-medium text-white">
+                {analysis.metadata.page_size
+                  ? `${(analysis.metadata.page_size / 1024).toFixed(2)} KB`
+                  : "Not available"}
+              </p>
             </div>
             <div>
               <p className="text-sm text-gray-400">Load Time</p>
-              <p className="font-medium text-white">{analysis.metadata.load_time.toFixed(2)}s</p>
+              <p className="font-medium text-white">
+                {analysis.metadata.load_time
+                  ? `${analysis.metadata.load_time.toFixed(2)}s`
+                  : "Not available"}
+              </p>
             </div>
             <div>
               <p className="text-sm text-gray-400">Image Count</p>
-              <p className="font-medium text-white">{analysis.metadata.image_count}</p>
+              <p className="font-medium text-white">
+                {analysis.metadata.image_count ?? "Not available"}
+              </p>
             </div>
             <div>
               <p className="text-sm text-gray-400">External Links</p>
-              <p className="font-medium text-white">{analysis.metadata.external_links}</p>
+              <p className="font-medium text-white">
+                {analysis.metadata.external_links ?? "Not available"}
+              </p>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      <Card className="border-gray-800 bg-gray-900">
-        <CardHeader>
-          <CardTitle className="text-white">Summary</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-gray-300">{analysis.summary}</p>
-        </CardContent>
-      </Card>
+      {/* Summary - if available */}
+      {analysis.summary && (
+        <Card className="border-gray-800 bg-gray-900">
+          <CardHeader>
+            <CardTitle className="text-white">Summary</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-gray-300">{analysis.summary}</p>
+          </CardContent>
+        </Card>
+      )}
     </div>
-  )
+  );
 }
-
