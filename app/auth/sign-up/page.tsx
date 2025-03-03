@@ -1,24 +1,25 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Image from "next/image";
 
 export default function SignUpPage() {
+  const router = useRouter();
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
     setSuccess("");
 
-    const formData = new FormData(e.target);
-    console.log("Form data:", formData);
+    const formData = new FormData(e.target as HTMLFormElement);
 
     try {
       // Make a direct fetch request
@@ -55,9 +56,13 @@ export default function SignUpPage() {
       if (result.error) {
         setError(result.error);
       } else {
-        setSuccess(
-          result.success || "Sign-up successful! Please check your email."
-        );
+        // Set success message and redirect to sign-in
+        setSuccess(result.message || "Account created successfully");
+
+        // Redirect to sign-in after a short delay
+        setTimeout(() => {
+          router.push(result.redirectUrl || "/auth/sign-in");
+        }, 1000);
       }
     } catch (err) {
       console.error("Form submission error:", err);

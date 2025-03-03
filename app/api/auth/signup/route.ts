@@ -13,6 +13,10 @@ export async function POST(request: NextRequest) {
     const firstName = formData.get("firstName") as string;
     const lastName = formData.get("lastName") as string;
 
+    // Determine the correct redirect URL
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+    const signInUrl = `${baseUrl}/auth/sign-in`;
+
     if (!email || !password) {
       console.log("Missing required fields");
       return NextResponse.json(
@@ -32,7 +36,7 @@ export async function POST(request: NextRequest) {
           first_name: firstName,
           last_name: lastName,
         },
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_BASE_URL}/auth/callback`,
+        emailRedirectTo: signInUrl, // Redirect to sign-in after verification
       },
     });
 
@@ -42,9 +46,12 @@ export async function POST(request: NextRequest) {
     }
 
     console.log("Signup successful:", data);
+    // Directly return a response indicating sign-in page redirection
     return NextResponse.json({
-      success: "Check your email for the verification link",
-      data: data,
+      success: true,
+      redirectUrl: "/auth/sign-in",
+      message:
+        "Account created successfully. Please check your email and sign in.",
     });
   } catch (err) {
     console.error("Unexpected signup error:", err);
