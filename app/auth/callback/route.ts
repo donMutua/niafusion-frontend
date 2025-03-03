@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
     const code = requestUrl.searchParams.get("code");
 
     // Determine the base URL dynamically
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
 
     if (code) {
       const supabase = await createClient();
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     console.error("Callback error:", err);
 
     // Determine the base URL dynamically
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
     return NextResponse.redirect(new URL("/auth/error", baseUrl));
   }
 }

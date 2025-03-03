@@ -5,7 +5,7 @@ export async function middleware(request: NextRequest) {
   // Create a Supabase client
   let response = NextResponse.next();
 
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
