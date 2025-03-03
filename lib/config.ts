@@ -1,8 +1,6 @@
 export const config = {
   api: {
-    baseUrl:
-      process.env.NEXT_PUBLIC_API_URL ||
-      "http://34.134.106.60:8080/api/v1/api/v1",
+    baseUrl: process.env.NEXT_PUBLIC_API_URL,
   },
   analysis: {
     maxPollingAttempts: 30,
