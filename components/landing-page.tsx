@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { MailQuestion } from "lucide-react";
 import { AuthNavButtons } from "./auth-nav-buttons";
+import { useAuth } from "@/hooks/use-auth";
 
 const Logo = () => (
   <svg
@@ -129,7 +130,7 @@ const SellMateIcon = () => (
   </svg>
 );
 
-const ScrollLink = ({ to, children }: any) => {
+export const ScrollLink = ({ to, children }: any) => {
   const handleClick = (e: any) => {
     e.preventDefault();
     const element = document.querySelector(to);
@@ -147,6 +148,7 @@ const ScrollLink = ({ to, children }: any) => {
 
 export default function LandingPage() {
   const targetRef = useRef(null);
+  const { isAuthenticated, isLoading } = useAuth();
   const { scrollYProgress } = useScroll({
     target: targetRef,
     offset: ["start start", "end start"],
@@ -226,9 +228,18 @@ export default function LandingPage() {
           </p>
 
           <div className="mt-8 flex flex-col md:flex-row gap-6 items-start">
-            <Button className="rounded-full text-white bg-black hover:bg-black/90 px-8 py-7 text-lg group relative overflow-hidden">
+            <Button
+              className="rounded-full text-white bg-black hover:bg-black/90 px-8 py-7 text-lg group relative overflow-hidden"
+              onClick={() => {
+                if (isAuthenticated) {
+                  window.location.href = "/dashboard/analysis";
+                } else {
+                  window.location.href = "/auth/sign-in";
+                }
+              }}
+            >
               <span className="relative z-10 flex items-center">
-                GET A DEMO
+                Analyze Now
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </span>
               <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-[#00ffff]/20" />
@@ -278,6 +289,13 @@ export default function LandingPage() {
                   <Button
                     variant="ghost"
                     className="text-[#00FFFF] hover:text-white hover:bg-[#00FFFF]/20"
+                    onClick={() => {
+                      if (isAuthenticated) {
+                        window.location.href = "/dashboard/analysis";
+                      } else {
+                        window.location.href = "/auth/sign-in";
+                      }
+                    }}
                   >
                     Analyze Now <ArrowRight className="ml-2 w-4 h-4" />
                   </Button>
