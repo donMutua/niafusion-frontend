@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import Image from "next/image";
 
 export default function SignUpPage() {
   const [error, setError] = useState("");
@@ -71,12 +72,11 @@ export default function SignUpPage() {
       {/* Left Section - Illustration */}
       <div className="hidden w-1/2 bg-gray-50 lg:block">
         <div className="relative flex h-full items-center justify-center">
-          <img
-            src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202025-02-24%20at%2015.45.28-u2dpY0bOv3rEq36Y4wiC3FHTOaGrFW.png"
+          <Image
+            src="/auth.jpg"
             alt="Sign up illustration"
-            className="object-contain"
-            width={400}
-            height={400}
+            layout="fill"
+            objectFit="cover"
           />
         </div>
       </div>

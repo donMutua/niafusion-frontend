@@ -512,7 +512,7 @@ export default function LandingPage() {
 
               <div className="relative">
                 <img
-                  src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202025-02-24%20at%2015.08.30-xW5VLVRD04g0LpSskwu9u5pYnXr8Ao.png"
+                  src="/work-culture.jpg"
                   alt="Team members"
                   className="rounded-2xl w-full object-cover shadow-xl"
                 />
