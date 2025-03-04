@@ -5,11 +5,13 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { signIn } from "../actions";
+import { Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
 
 export default function SignInPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (formData: FormData) => {
     setIsLoading(true);
@@ -24,6 +26,10 @@ export default function SignInPage() {
     // If successful, the action will redirect to dashboard
   };
 
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
   return (
     <div className="flex min-h-screen">
       {/* Left Section - Illustration */}
@@ -31,7 +37,7 @@ export default function SignInPage() {
         <div className="relative flex h-full items-center justify-center">
           <Image
             src="/auth.jpg"
-            alt="Sign up illustration"
+            alt="Sign in illustration"
             layout="fill"
             objectFit="cover"
           />
@@ -73,15 +79,37 @@ export default function SignInPage() {
                 required
               />
             </div>
-            <div>
+            <div className="relative">
               <Input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 name="password"
                 placeholder="••••••••••"
-                className="h-12 text-base px-4"
+                className="h-12 text-base px-4 pr-10"
                 required
               />
+              <button
+                type="button"
+                tabIndex={-1}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                onClick={togglePasswordVisibility}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-5 w-5 text-gray-400" />
+                ) : (
+                  <Eye className="h-5 w-5 text-gray-400" />
+                )}
+              </button>
             </div>
+
+            <div className="flex items-center justify-end">
+              <Link
+                href="/auth/forgot-password"
+                className="text-sm text-[#4F46E5] hover:text-[#4F46E5]/90"
+              >
+                Forgot password?
+              </Link>
+            </div>
+
             <Button
               type="submit"
               className="w-full h-12 text-base bg-[#4F46E5] text-white hover:bg-[#4F46E5]/90"
@@ -90,15 +118,6 @@ export default function SignInPage() {
               {isLoading ? "Signing in..." : "Sign in"}
             </Button>
           </form>
-
-          <div className="text-center mt-4">
-            <Link
-              href="/auth/forgot-password"
-              className="text-sm text-[#4F46E5] hover:text-[#4F46E5]/90"
-            >
-              Forgot password?
-            </Link>
-          </div>
         </div>
 
         <div className="text-center text-sm text-gray-600">

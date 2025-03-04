@@ -1,30 +1,36 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { resetPassword } from "../actions";
 import { Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
 
-export default function SignUpPage() {
+export default function ResetPasswordPage() {
   const router = useRouter();
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const searchParams = useSearchParams();
 
-  // Password visibility states
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  // Debug search params
+  console.log(
+    "Search params:",
+    Object.fromEntries(searchParams?.entries() || [])
+  );
 
-  // Form validation states
-  const [passwordsMatch, setPasswordsMatch] = useState(true);
-  const [passwordLength, setPasswordLength] = useState(true);
+  // Look for both token and code parameters
+  const resetCode = searchParams?.get("token") || searchParams?.get("code");
+  console.log("Reset code found:", resetCode);
 
-  // Form values for validation
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [passwordsMatch, setPasswordsMatch] = useState(true);
 
   // Check if passwords match on input change
   useEffect(() => {
@@ -35,81 +41,58 @@ export default function SignUpPage() {
     }
   }, [password, confirmPassword]);
 
-  // Validate password length
   useEffect(() => {
-    if (password) {
-      setPasswordLength(password.length >= 6);
-    } else {
-      setPasswordLength(true); // Reset when field is empty
+    if (!resetCode) {
+      setError(
+        "Invalid or missing reset code. Please request a new password reset link."
+      );
     }
-  }, [password]);
+  }, [resetCode]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // Final validation check before submission
-    if (!passwordLength || !passwordsMatch) {
+    // Client-side validation
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters long");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setPasswordsMatch(false);
+      setError("Passwords do not match");
+      return;
+    }
+
+    if (!resetCode) {
+      setError("Invalid or missing reset code");
       return;
     }
 
     setIsLoading(true);
-    setError("");
-    setSuccess("");
-
-    const formData = new FormData(e.target as HTMLFormElement);
+    setError(null);
+    setSuccess(null);
 
     try {
-      // Make a direct fetch request
-      const response = await fetch("/api/auth/signup", {
-        method: "POST",
-        body: formData,
-      });
-
-      // Check if the response is OK before attempting to parse JSON
-      if (!response.ok) {
-        // Try to get the error message as text first
-        const errorText = await response.text();
-        console.log("Error response text:", errorText);
-
-        // Try to parse as JSON if possible
-        let errorMessage = "Failed to sign up";
-        try {
-          const errorData = JSON.parse(errorText);
-          errorMessage = errorData.error || errorMessage;
-        } catch (e) {
-          // If parsing fails, use the status text
-          errorMessage = `Server error: ${response.status} ${response.statusText}`;
-        }
-
-        setError(errorMessage);
-        setIsLoading(false);
-        return;
-      }
-
-      // Parse successful response
-      const result = await response.json();
-      console.log("Success response:", result);
+      const result = await resetPassword(resetCode, password);
 
       if (result.error) {
         setError(result.error);
       } else {
-        // Set success message and redirect to sign-in
-        setSuccess(result.message || "Account created successfully");
-
-        // Redirect to sign-in after a short delay
+        setSuccess("Your password has been reset successfully!");
+        // Redirect to sign-in page after successful password reset
         setTimeout(() => {
-          router.push(result.redirectUrl || "/auth/sign-in");
-        }, 1000);
+          router.push("/auth/sign-in");
+        }, 2000);
       }
     } catch (err) {
-      console.error("Form submission error:", err);
       setError("An unexpected error occurred. Please try again.");
+      console.error("Reset password error:", err);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Toggle password visibility
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
@@ -125,18 +108,18 @@ export default function SignUpPage() {
         <div className="relative flex h-full items-center justify-center">
           <Image
             src="/auth.jpg"
-            alt="Sign up illustration"
+            alt="Reset password illustration"
             layout="fill"
             objectFit="cover"
           />
         </div>
       </div>
 
-      {/* Right Section - Sign Up Form */}
+      {/* Right Section - Reset Password Form */}
       <div className="flex w-full flex-col justify-between p-8 lg:w-1/2">
         <div className="flex justify-end">
           <p className="text-sm text-gray-600">
-            Already have an account?{" "}
+            Remember your password?{" "}
             <Link
               href="/auth/sign-in"
               className="text-[#4F46E5] hover:text-[#4F46E5]/90"
@@ -147,9 +130,12 @@ export default function SignUpPage() {
         </div>
 
         <div className="mx-auto w-full max-w-sm">
-          <h1 className="mb-8 text-[clamp(2rem,5vw,3rem)] font-medium leading-tight tracking-tight">
-            Create account
+          <h1 className="mb-2 text-[clamp(2rem,5vw,3rem)] font-medium leading-tight tracking-tight">
+            Create new password
           </h1>
+          <p className="mb-8 text-gray-600">
+            Your new password must be at least 6 characters long.
+          </p>
 
           {error && (
             <div className="mb-4 p-4 text-sm text-red-500 bg-red-50 rounded-md">
@@ -164,47 +150,17 @@ export default function SignUpPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Input
-                  name="firstName"
-                  placeholder="First name"
-                  className="h-12 text-base px-4"
-                  required
-                />
-              </div>
-              <div>
-                <Input
-                  name="lastName"
-                  placeholder="Last name"
-                  className="h-12 text-base px-4"
-                  required
-                />
-              </div>
-            </div>
-            <div>
-              <Input
-                type="email"
-                name="email"
-                placeholder="name@example.com"
-                className="h-12 text-base px-4"
-                required
-              />
-            </div>
             <div className="relative">
               <Input
                 type={showPassword ? "text" : "password"}
                 name="password"
-                placeholder="Password (min. 6 characters)"
-                className={`h-12 text-base px-4 pr-10 ${
-                  !passwordLength && password
-                    ? "border-red-500 focus-visible:ring-red-500"
-                    : ""
-                }`}
+                placeholder="New password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                className="h-12 text-base px-4 pr-10"
                 required
                 minLength={6}
+                disabled={!resetCode}
               />
               <button
                 type="button"
@@ -218,25 +174,23 @@ export default function SignUpPage() {
                   <Eye className="h-5 w-5 text-gray-400" />
                 )}
               </button>
-              {!passwordLength && password && (
-                <p className="text-xs text-red-500 mt-1">
-                  Password must be at least 6 characters long
-                </p>
-              )}
             </div>
+
             <div className="relative">
               <Input
                 type={showConfirmPassword ? "text" : "password"}
                 name="confirmPassword"
-                placeholder="Confirm password"
+                placeholder="Confirm new password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 className={`h-12 text-base px-4 pr-10 ${
                   !passwordsMatch && confirmPassword
                     ? "border-red-500 focus-visible:ring-red-500"
                     : ""
                 }`}
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
                 required
+                minLength={6}
+                disabled={!resetCode}
               />
               <button
                 type="button"
@@ -256,32 +210,25 @@ export default function SignUpPage() {
                 </p>
               )}
             </div>
+
             <Button
               type="submit"
               className="w-full h-12 text-base bg-[#4F46E5] text-white hover:bg-[#4F46E5]/90"
-              disabled={isLoading || !passwordLength || !passwordsMatch}
+              disabled={isLoading || !resetCode}
             >
-              {isLoading ? "Creating account..." : "Create account"}
+              {isLoading ? "Resetting..." : "Reset password"}
             </Button>
           </form>
         </div>
 
         <div className="text-center text-sm text-gray-600">
-          By continuing, you agree to our{" "}
+          Need a new reset link?{" "}
           <Link
-            href="/terms"
+            href="/auth/forgot-password"
             className="text-[#4F46E5] hover:text-[#4F46E5]/90"
           >
-            Terms of Service
-          </Link>{" "}
-          and{" "}
-          <Link
-            href="/privacy"
-            className="text-[#4F46E5] hover:text-[#4F46E5]/90"
-          >
-            Privacy Policy
+            Request again
           </Link>
-          .
         </div>
       </div>
     </div>
