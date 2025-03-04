@@ -1,15 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { resetPassword } from "../actions";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import Image from "next/image";
 
-export default function ResetPasswordPage() {
+// Separate component that uses searchParams
+function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -102,6 +103,105 @@ export default function ResetPasswordPage() {
   };
 
   return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {error && (
+        <div className="mb-4 p-4 text-sm text-red-500 bg-red-50 rounded-md">
+          {error}
+        </div>
+      )}
+
+      {success && (
+        <div className="mb-4 p-4 text-sm text-green-500 bg-green-50 rounded-md">
+          {success}
+        </div>
+      )}
+
+      <div className="relative">
+        <Input
+          type={showPassword ? "text" : "password"}
+          name="password"
+          placeholder="New password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="h-12 text-base px-4 pr-10"
+          required
+          minLength={6}
+          disabled={!resetCode}
+        />
+        <button
+          type="button"
+          tabIndex={-1}
+          className="absolute inset-y-0 right-0 pr-3 flex items-center"
+          onClick={togglePasswordVisibility}
+        >
+          {showPassword ? (
+            <EyeOff className="h-5 w-5 text-gray-400" />
+          ) : (
+            <Eye className="h-5 w-5 text-gray-400" />
+          )}
+        </button>
+      </div>
+
+      <div className="relative">
+        <Input
+          type={showConfirmPassword ? "text" : "password"}
+          name="confirmPassword"
+          placeholder="Confirm new password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          className={`h-12 text-base px-4 pr-10 ${
+            !passwordsMatch && confirmPassword
+              ? "border-red-500 focus-visible:ring-red-500"
+              : ""
+          }`}
+          required
+          minLength={6}
+          disabled={!resetCode}
+        />
+        <button
+          type="button"
+          tabIndex={-1}
+          className="absolute inset-y-0 right-0 pr-3 flex items-center"
+          onClick={toggleConfirmPasswordVisibility}
+        >
+          {showConfirmPassword ? (
+            <EyeOff className="h-5 w-5 text-gray-400" />
+          ) : (
+            <Eye className="h-5 w-5 text-gray-400" />
+          )}
+        </button>
+        {!passwordsMatch && confirmPassword && (
+          <p className="text-xs text-red-500 mt-1">Passwords do not match</p>
+        )}
+      </div>
+
+      <Button
+        type="submit"
+        className="w-full h-12 text-base bg-[#4F46E5] text-white hover:bg-[#4F46E5]/90"
+        disabled={isLoading || !resetCode}
+      >
+        {isLoading ? "Resetting..." : "Reset password"}
+      </Button>
+    </form>
+  );
+}
+
+// Loading fallback component
+function FormSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="h-12 bg-gray-100 rounded animate-pulse"></div>
+      <div className="h-12 bg-gray-100 rounded animate-pulse"></div>
+      <div className="h-12 bg-gray-100 rounded animate-pulse"></div>
+      <div className="flex justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+      </div>
+    </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
     <div className="flex min-h-screen">
       {/* Left Section - Illustration */}
       <div className="hidden w-1/2 bg-gray-50 lg:block">
@@ -137,88 +237,10 @@ export default function ResetPasswordPage() {
             Your new password must be at least 6 characters long.
           </p>
 
-          {error && (
-            <div className="mb-4 p-4 text-sm text-red-500 bg-red-50 rounded-md">
-              {error}
-            </div>
-          )}
-
-          {success && (
-            <div className="mb-4 p-4 text-sm text-green-500 bg-green-50 rounded-md">
-              {success}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="relative">
-              <Input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                placeholder="New password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="h-12 text-base px-4 pr-10"
-                required
-                minLength={6}
-                disabled={!resetCode}
-              />
-              <button
-                type="button"
-                tabIndex={-1}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                onClick={togglePasswordVisibility}
-              >
-                {showPassword ? (
-                  <EyeOff className="h-5 w-5 text-gray-400" />
-                ) : (
-                  <Eye className="h-5 w-5 text-gray-400" />
-                )}
-              </button>
-            </div>
-
-            <div className="relative">
-              <Input
-                type={showConfirmPassword ? "text" : "password"}
-                name="confirmPassword"
-                placeholder="Confirm new password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className={`h-12 text-base px-4 pr-10 ${
-                  !passwordsMatch && confirmPassword
-                    ? "border-red-500 focus-visible:ring-red-500"
-                    : ""
-                }`}
-                required
-                minLength={6}
-                disabled={!resetCode}
-              />
-              <button
-                type="button"
-                tabIndex={-1}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                onClick={toggleConfirmPasswordVisibility}
-              >
-                {showConfirmPassword ? (
-                  <EyeOff className="h-5 w-5 text-gray-400" />
-                ) : (
-                  <Eye className="h-5 w-5 text-gray-400" />
-                )}
-              </button>
-              {!passwordsMatch && confirmPassword && (
-                <p className="text-xs text-red-500 mt-1">
-                  Passwords do not match
-                </p>
-              )}
-            </div>
-
-            <Button
-              type="submit"
-              className="w-full h-12 text-base bg-[#4F46E5] text-white hover:bg-[#4F46E5]/90"
-              disabled={isLoading || !resetCode}
-            >
-              {isLoading ? "Resetting..." : "Reset password"}
-            </Button>
-          </form>
+          {/* Wrap the component that uses useSearchParams in Suspense */}
+          <Suspense fallback={<FormSkeleton />}>
+            <ResetPasswordForm />
+          </Suspense>
         </div>
 
         <div className="text-center text-sm text-gray-600">
