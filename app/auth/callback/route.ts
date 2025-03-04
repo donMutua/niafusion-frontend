@@ -1,6 +1,9 @@
 import { createClient } from "../../../lib/supabase/server";
 import { NextResponse, type NextRequest } from "next/server";
 
+// Mark the route as using Edge runtime to handle dynamic requests
+export const runtime = "edge";
+
 export async function GET(request: NextRequest) {
   try {
     const requestUrl = new URL(request.url);
