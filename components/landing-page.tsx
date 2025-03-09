@@ -19,6 +19,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { MailQuestion } from "lucide-react";
 import { AuthNavButtons } from "./auth-nav-buttons";
 import { useAuth } from "@/hooks/use-auth";
+import { ComingSoonSection } from "./coming-soon-section";
 
 const Logo = () => (
   <svg
@@ -289,13 +290,6 @@ export default function LandingPage() {
                   <Button
                     variant="ghost"
                     className="text-[#00FFFF] hover:text-white hover:bg-[#00FFFF]/20"
-                    onClick={() => {
-                      if (isAuthenticated) {
-                        window.location.href = "/dashboard/analysis";
-                      } else {
-                        window.location.href = "/auth/sign-in";
-                      }
-                    }}
                   >
                     Analyze Now <ArrowRight className="ml-2 w-4 h-4" />
                   </Button>
@@ -309,10 +303,11 @@ export default function LandingPage() {
                   <SEOSageIcon />
                 </div>
                 <h3 className="text-xl font-semibold mb-2 text-white">
-                  SEO Sage
+                  Churn Shield
                 </h3>
                 <p className="text-gray-400 mb-4">
-                  Predictive SEO for dominating search rankings.
+                  Churn is costly, but it doesn't have to be inevitable. Predict
+                  which customers are at risk of leaving.
                 </p>
                 <div className="flex items-center justify-between">
                   <Badge
@@ -337,10 +332,11 @@ export default function LandingPage() {
                   <SellMateIcon />
                 </div>
                 <h3 className="text-xl font-semibold mb-2 text-white">
-                  SellMate
+                  Cart Rescue AI
                 </h3>
                 <p className="text-gray-400 mb-4">
-                  AI-driven sales automation for 24/7 revenue growth.
+                  Every abandoned cart is a missed opportunity. Detect abandoned
+                  carts in real-time.
                 </p>
                 <div className="flex items-center justify-between">
                   <Badge
@@ -361,6 +357,8 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      <ComingSoonSection />
 
       {/* About Section */}
       <section id="about" className="relative py-16">
