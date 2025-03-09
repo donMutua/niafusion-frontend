@@ -2,16 +2,19 @@
 
 import { useState, useEffect } from "react";
 import { motion, useAnimation } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
 
 export function ComingSoonSection() {
   const [email, setEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [activeTab, setActiveTab] = useState("churn");
   const controls = useAnimation();
+  const { toast } = useToast();
 
   useEffect(() => {
     // Reset animation and start new animation when tab changes
@@ -20,14 +23,69 @@ export function ComingSoonSection() {
     });
   }, [activeTab, controls]);
 
-  const handleSubmit = (e: any) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Email submitted:", email);
-    setIsSubmitted(true);
+
+    if (!email || !email.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid email address",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Submit to Supabase through our API route
+      const response = await fetch("/api/waitlist", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          productInterest: activeTab,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setIsSubmitted(true);
+        setEmail("");
+        toast({
+          title: "Success!",
+          description:
+            result.message ||
+            "You've been added to our waitlist. We'll keep you updated!",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description:
+            result.error || "Failed to join waitlist. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error submitting waitlist form:", error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <section className="py-20 bg-black text-white overflow-hidden">
+    <section
+      id="waitlist"
+      className="py-20 bg-black text-white overflow-hidden"
+    >
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <motion.div
@@ -513,7 +571,8 @@ export function ComingSoonSection() {
           </h3>
           <p className="text-gray-300 mb-8 max-w-2xl mx-auto">
             Join the waiting list today and be the first to access our
-            cutting-edge AI tools.
+            cutting-edge AI tools for{" "}
+            {activeTab === "churn" ? "customer retention" : "cart recovery"}.
           </p>
 
           {!isSubmitted ? (
@@ -525,13 +584,24 @@ export function ComingSoonSection() {
                 onChange={(e) => setEmail(e.target.value)}
                 className="flex-grow mr-2 bg-gray-800 border-gray-700 text-white"
                 required
+                disabled={isSubmitting}
               />
               <Button
                 type="submit"
                 className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white w-80"
+                disabled={isSubmitting}
               >
-                Reserve Your Spot
-                <ArrowRight className="ml-2 h-4 w-4" />
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    Reserve Your Spot
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </>
+                )}
               </Button>
             </form>
           ) : (
@@ -540,8 +610,8 @@ export function ComingSoonSection() {
               animate={{ opacity: 1, y: 0 }}
               className="bg-gray-800 border border-purple-500 text-purple-400 p-4 rounded-md max-w-md mx-auto"
             >
-              Thank you for joining the waiting list! We'll keep you updated on
-              our launch.
+              Thank you for joining the waitlist! We'll keep you updated on our
+              launch progress and beta access information.
             </motion.div>
           )}
         </motion.div>
