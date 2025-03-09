@@ -12,6 +12,7 @@ export function ComingSoonSection() {
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [responseMessage, setResponseMessage] = useState("");
   const [activeTab, setActiveTab] = useState("churn");
   const controls = useAnimation();
   const { toast } = useToast();
@@ -51,15 +52,22 @@ export function ComingSoonSection() {
       });
 
       const result = await response.json();
+      console.log("Waitlist response:", result); // Debug logging
 
       if (response.ok) {
+        // Always set isSubmitted to true for successful responses
         setIsSubmitted(true);
+
+        // Store the response message from the server
+        setResponseMessage(result.message || "Thank you for your interest!");
+
+        // Clear the email input
         setEmail("");
+
+        // Show toast notification
         toast({
           title: "Success!",
-          description:
-            result.message ||
-            "You've been added to our waitlist. We'll keep you updated!",
+          description: result.message || "Thank you for your interest!",
         });
       } else {
         toast({
@@ -610,8 +618,7 @@ export function ComingSoonSection() {
               animate={{ opacity: 1, y: 0 }}
               className="bg-gray-800 border border-purple-500 text-purple-400 p-4 rounded-md max-w-md mx-auto"
             >
-              Thank you for joining the waitlist! We'll keep you updated on our
-              launch progress and beta access information.
+              {responseMessage}
             </motion.div>
           )}
         </motion.div>
