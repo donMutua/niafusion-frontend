@@ -64,7 +64,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: "You've been added to our waitlist!",
+      message:
+        "🎉 You're in! You're officially on our waitlist—get ready for something amazing! 🚀 Stay tuned, big things are coming your way! 🔥",
     });
   } catch (error) {
     console.error("Error processing waitlist request:", error);
@@ -74,7 +75,8 @@ export async function POST(request: NextRequest) {
     if (supabaseError?.code === "23505") {
       return NextResponse.json({
         success: true,
-        message: "You're already on our waitlist!",
+        message:
+          "🔥 You're already on the list, VIP! 🚀 No need to sign up again—just sit tight, and we’ll keep you posted on what’s coming next! 😉✨",
       });
     }
 
